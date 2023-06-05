@@ -1,0 +1,21 @@
+Write me full code of flutter android image recognition app for hfmd image.
+Include and the dependencies need and configuration
+Basic requirement:
+Login Screen:
+Login credential with data stored in mongodb flask server. credential are saved in the app session and can be accessed by from any screen
+Registering Screen:
+Registering user credential such as username, password, email, phone number and gender and saved into the mongodb using flask server.
+Home Screen:
+contain bottom navigation bar to navigate between upload screen, analytic screen, list Screen and profile Screen,
+Upload Screen:
+Upload Screen contain functionalities to load image and recognize using custom model and display the result.
+image recognition using tensorflow lite and the custom model were saved in the application asset.
+List Screen:
+Contain list of prediction result and its image that were retreieve from mongodb using flask server.
+Profile Screen:
+Contain section that can see the logged user and edit its credential and logout buttton.
+Analytic Screen:
+contain graph bar of prediction result by month that data were retreived from mongodb using flask
+
+
+
