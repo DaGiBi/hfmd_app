@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hfmd_app/screens/register_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -58,6 +59,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _navigateToRegisterScreen() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => RegisterScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,6 +87,10 @@ class _LoginScreenState extends State<LoginScreen> {
             ElevatedButton(
               child: Text('Login'),
               onPressed: _login_pass,
+            ),
+             ElevatedButton(
+              child: Text('Registers'),
+              onPressed: _navigateToRegisterScreen,
             ),
           ],
         ),

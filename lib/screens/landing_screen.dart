@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:hfmd_app/screens/home_screen.dart';
 import 'package:hfmd_app/screens/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class LandingScreen extends StatefulWidget {
@@ -31,6 +31,9 @@ class _LandingScreenState extends State<LandingScreen> {
       _isLoading = false;
     });
     if (isConnected) {
+
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isConnected', _isConnected);
       // Connected to the internet, navigate to the login screen
       Navigator.pushReplacement(
         context,
@@ -39,11 +42,10 @@ class _LandingScreenState extends State<LandingScreen> {
     }
   }
 
-  void _navigateToHomeScreen() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => HomeScreen()),
-    );
+  void _navigateToHomeScreen() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isConnected', _isConnected);
+    Navigator.pushReplacementNamed(context, '/bottomBar');
   }
 
   @override

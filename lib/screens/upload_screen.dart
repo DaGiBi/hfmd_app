@@ -27,6 +27,7 @@ class _UploadScreenState extends State<UploadScreen> {
   String? _age;   //age
   late LocationData _locationData;
   String _username = '';
+  bool _isConnected = false;
 
   bool _isFormValid() {    
     return _age != null && _selectedGender != null;
@@ -40,9 +41,10 @@ class _UploadScreenState extends State<UploadScreen> {
   Future<void> _loadSession() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? username = prefs.getString('username');
-
+    final bool? isConnected = prefs.getBool('isConnected');
     setState(() {
       _username = username ?? '';
+      _isConnected = isConnected!;
     });
   }
   Future<void> _loadModel() async {
@@ -156,9 +158,9 @@ class _UploadScreenState extends State<UploadScreen> {
       // final city = locationFile["address"]["city"];
       // Store data locally
       await _storeLocally(gender, age, location, prediction, accuracy, imageUri);
-
-      // Store data in MongoDB via Flask server API
-      await _storeInMongoDB(gender, age, location, prediction, accuracy, imageUri);
+      if(_isConnected)
+        // Store data in MongoDB via Flask server API
+        await _storeInMongoDB(gender, age, location, prediction, accuracy, imageUri);
     } catch (e) {
       print('Error storing data: $e');
     }
