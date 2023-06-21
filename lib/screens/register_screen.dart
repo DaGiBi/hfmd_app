@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:hfmd_app/screens/constant.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -18,7 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>(); // Form key for validation
 
   Future<bool> _validateUsername(String username) async {
-    final url = 'http://192.168.0.110:5000/validate-username';
+    const url = '$constantUrl/validate-username';
 
     final response = await http.post(
       Uri.parse(url),
@@ -58,7 +59,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
         return;
       }
-      final String url = 'http://192.168.0.110:5000/register-user';
+      const String url = '$constantUrl/register-user';
 
       final response = await http.post(
         Uri.parse(url),

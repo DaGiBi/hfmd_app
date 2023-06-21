@@ -1,0 +1,53 @@
+To replace the `charts_flutter` package with the `syncfusion_flutter_charts` package, you will need to make the following changes to your code:
+
+1. Add the `syncfusion_flutter_charts` package as a dependency in your `pubspec.yaml` file:
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  syncfusion_flutter_charts: ^19.2.56
+```
+
+2. Import the necessary packages in your code:
+```dart
+import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+```
+
+3. Replace the `_buildChart` method with the modified code:
+```dart
+Widget _buildChart(List<DataPoint> dataPoints) {
+  final genderColorMap = {
+    'Male': Colors.blue,
+    'Female': Colors.pink,
+  };
+
+  final hfmdColor = Colors.green;
+  final notHfmdColor = Colors.red;
+
+  return Expanded(
+    child: Container(
+      height: 200,
+      child: SfCartesianChart(
+        primaryXAxis: CategoryAxis(),
+        series: <ChartSeries>[
+          StackedBarSeries<DataPoint, String>(
+            dataSource: dataPoints,
+            xValueMapper: (DataPoint dataPoint, _) => dataPoint.category,
+            yValueMapper: (DataPoint dataPoint, _) => dataPoint.value,
+            color: genderColorMap[dataPoints[0].category] ?? Colors.grey,
+            borderColor: Colors.white,
+            borderWidth: 1,
+            animationDuration: 0,
+            dataLabelSettings: DataLabelSettings(isVisible: true),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+```
+
+With these changes, you are using the `SfCartesianChart` widget from the `syncfusion_flutter_charts` package. The chart is configured as a stacked bar chart using the `StackedBarSeries`. The `primaryXAxis` is set to `CategoryAxis` for displaying the categories on the X-axis.
+
+Note: Make sure to run `flutter pub get` to fetch the updated dependencies before running the modified code.

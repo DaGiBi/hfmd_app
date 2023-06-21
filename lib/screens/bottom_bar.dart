@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hfmd_app/screens/map_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hfmd_app/screens/upload_screen.dart';
 import 'package:hfmd_app/screens/list_screen.dart';
 import 'package:hfmd_app/screens/profile_screen.dart';
 import 'package:hfmd_app/screens/home_screen.dart';
-// import 'package:hfmd_app/screens/analytic_screen.dart';
+import 'package:hfmd_app/screens/analytic_screen.dart';
 
 class BottomBar extends StatefulWidget {
   @override
@@ -32,7 +33,7 @@ class _BottomBarState extends State<BottomBar> {
   List<BottomNavigationBarItem> getBottomNavItems() {
     List<BottomNavigationBarItem> items = [
       BottomNavigationBarItem(
-        icon: Icon(Icons.upload),
+        icon: Icon(Icons.home),
         label: 'Home',
       ),
       BottomNavigationBarItem(
@@ -47,18 +48,25 @@ class _BottomBarState extends State<BottomBar> {
 
     // Add condition to show/hide Analytics item
     if (_isConnected) {
-      // items.add(
-      //   BottomNavigationBarItem(
-      //     icon: Icon(Icons.analytics),
-      //     label: 'Analytics',
-      //   ),
-      // );
+      items.add(
+        BottomNavigationBarItem(
+          icon: Icon(Icons.analytics),
+          label: 'Analytics',
+        ),
+      );
+      items.add(
+        BottomNavigationBarItem(
+          icon: Icon(Icons.explore),
+          label: 'Map',
+        ),
+      );
       items.add(
         BottomNavigationBarItem(
           icon: Icon(Icons.person),
           label: 'Profile',
         ),
       );
+      
   }
 
     return items;
@@ -74,6 +82,8 @@ class _BottomBarState extends State<BottomBar> {
 
     // Add condition to include Profile screen
     if (_isConnected) {
+      options.add(AnalyticScreen());
+      options.add(MapScreen());
       options.add(ProfileScreen());
     }
 

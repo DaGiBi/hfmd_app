@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:hfmd_app/screens/constant.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -27,9 +28,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       _username = username ?? '';
     });
- // Fetch user data from MongoDB
+    // Fetch user data from MongoDB
     try {
-      String url = 'http://192.168.0.110:5000/get-user/$_username';
+      String url = '$constantUrl/get-user/$_username';
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final userData = json.decode(response.body);
@@ -48,10 +49,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-
   Future<void> _logout() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+    await prefs.remove("username");
 
     Navigator.pushReplacementNamed(context, '/');
   }
@@ -60,24 +61,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Profile')),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('Logged-in User: $_username'),
-          Text('Email: $_email'),
-          Text('Phone: $_phone'),
-          Text('Gender: $_gender'),
-          ElevatedButton(
-            child: Text('Edit Profile'),
-            onPressed: () {
-              // Implement profile editing functionality
-            },
-          ),
-          ElevatedButton(
-            child: Text('Logout'),
-            onPressed: _logout,
-          ),
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Logged-in User: $_username',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Email: $_email',
+              style: Theme.of(context).textTheme.bodyText2,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Phone: $_phone',
+              style: Theme.of(context).textTheme.bodyText2,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Gender: $_gender',
+              style: Theme.of(context).textTheme.bodyText2,
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              child: Text(
+                'Edit Profile',
+                style: Theme.of(context).textTheme.button,
+              ),
+              onPressed: () {
+                // Implement profile editing functionality
+              },
+            ),
+            SizedBox(height: 8),
+            ElevatedButton(
+              child: Text(
+                'Logout',
+                style: Theme.of(context).textTheme.button,
+              ),
+              onPressed: _logout,
+            ),
+          ],
+        ),
       ),
     );
   }

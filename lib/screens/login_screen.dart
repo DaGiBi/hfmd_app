@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hfmd_app/screens/constant.dart';
 import 'package:hfmd_app/screens/register_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final String username = _usernameController.text;
     final String password = _passwordController.text;
 
-    final String url = 'http://192.168.0.110:5000/login';
+    const String url = '$constantUrl/login';
 
     final response = await http.post(
       Uri.parse(url),
@@ -86,12 +87,17 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             ElevatedButton(
               child: Text('Login'),
-              onPressed: _login_pass,
+              onPressed: _login,
             ),
              ElevatedButton(
               child: Text('Registers'),
               onPressed: _navigateToRegisterScreen,
             ),
+
+            ElevatedButton(
+            child: Text('Bypass'),
+            onPressed: _login_pass,
+          ) ,
           ],
         ),
       ),

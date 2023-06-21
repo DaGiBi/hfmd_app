@@ -35,7 +35,6 @@ dependencies:
   path_provider: ^2.0.5
   image_picker: ^0.8.2
   # tflite_flutter: ^2.1.0
-  fl_chart: ^0.36.0
   # tflite: ^1.1.2
   shared_preferences: ^2.0.10
 
@@ -50,6 +49,11 @@ dependencies:
   convert: ^3.1.1
   connectivity: ^3.0.6
   fluttertoast: ^8.0.7
+  syncfusion_flutter_charts: ^19.2.56
+  flutter_map: ^4.0.0
+  latlong2: ^0.8.2
+  image_card: ^0.0.4
+  flex_color_scheme: ^7.1.2
 
 dev_dependencies:
   flutter_test:

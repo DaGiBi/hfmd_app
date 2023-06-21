@@ -1,124 +1,149 @@
-// import 'dart:convert';
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:hfmd_app/screens/constant.dart';
+import 'package:hfmd_app/widget/stacked_chart_gender.dart';
 
-// import 'package:flutter/material.dart';
-// import 'package:http/http.dart' as http;
-// import 'package:fl_chart/fl_chart.dart';
+class AnalyticScreen extends StatefulWidget {
+  @override
+  _AnalyticScreenState createState() => _AnalyticScreenState();
+}
 
-// class AnalyticScreen extends StatefulWidget {
-//   @override
-//   _AnalyticScreenState createState() => _AnalyticScreenState();
-// }
+class _AnalyticScreenState extends State<AnalyticScreen> {
 
-// class _AnalyticScreenState extends State<AnalyticScreen> {
-//   List<PredictionData> _predictionData = [];
+  List<DataPoint> cityDataPoints = [];
+  List<DataPoint> monthDataPoints = [];
+  List<DataPoint> ageDataPoints = [];
+    List<dynamic> genderData = [];
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     _fetchPredictionData();
-//   }
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
 
-//   Future<void> _fetchPredictionData() async {
-//     final String url = 'your_flask_server_url/prediction_data';
+  Future<void> fetchData() async {
+    final url = '$constantUrl/analytics';
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body) as List<dynamic>;
 
-//     final response = await http.get(Uri.parse(url));
+      final cityPredictionCounts = <String, int>{};
+      final monthPredictionCounts = <String, int>{};
+      final agePredictionCounts = <String, int>{};
 
-//     if (response.statusCode == 200) {
-//       final List<dynamic> data = jsonDecode(response.body);
-//       final List<PredictionData> predictionData = data
-//           .map<PredictionData>((item) => PredictionData.fromJson(item))
-//           .toList();
 
-//       setState(() {
-//         _predictionData = predictionData;
-//       });
-//     } else {
-//       showDialog(
-//         context: context,
-//         builder: (_) => AlertDialog(
-//           title: Text('Error'),
-//           content: Text('Failed to fetch prediction data.'),
-//           actions: [
-//             TextButton(
-//               child: Text('OK'),
-//               onPressed: () => Navigator.pop(context),
-//             ),
-//           ],
-//         ),
-//       );
-//     }
-//   }
+      for (final entry in jsonData) {
+        final city = entry['location']['city'] as String;
+        final month = entry['dateDiagnose'].split('-')[1];
+        final age = entry['age'] as String;
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: Text('Analytics')),
-//       body: _predictionData.isNotEmpty
-//           ? BarChart(
-//               BarChartData(
-//                 titlesData: FlTitlesData(
-//                   show: true,
-//                   bottomTitles: SideTitles(
-//                     showTitles: true,
-//                     textStyle: TextStyle(color: Colors.black),
-//                     margin: 10,
-//                     getTitles: (double value) {
-//                       final month = value.toInt();
-//                       return _predictionData[month - 1].month;
-//                     },
-//                   ),
-//                   leftTitles: SideTitles(
-//                     showTitles: true,
-//                     textStyle: TextStyle(color: Colors.black),
-//                     margin: 10,
-//                     getTitles: (double value) {
-//                       if (value == 0) {
-//                         return '0';
-//                       } else if (value % 10 == 0) {
-//                         return '${value.toInt()}%';
-//                       } else {
-//                         return '';
-//                       }
-//                     },
-//                   ),
-//                 ),
-//                 borderData: FlBorderData(show: false),
-//                 barGroups: _predictionData
-//                     .asMap()
-//                     .entries
-//                     .map(
-//                       (entry) => BarChartGroupData(
-//                         x: entry.key + 1,
-//                         barRods: [
-//                           BarChartRodData(
-//                             y: entry.value.predictionPercentage,
-//                             color: Colors.blue,
-//                             width: 20,
-//                           ),
-//                         ],
-//                       ),
-//                     )
-//                     .toList(),
-//               ),
-//             )
-//           : Center(child: CircularProgressIndicator()),
-//     );
-//   }
-// }
 
-// class PredictionData {
-//   final String month;
-//   final double predictionPercentage;
+        cityPredictionCounts[city] = (cityPredictionCounts[city] ?? 0) + 1;
+        monthPredictionCounts[month] = (monthPredictionCounts[month] ?? 0) + 1;
+        agePredictionCounts[age] = (agePredictionCounts[age] ?? 0) + 1;
+      }
 
-//   PredictionData({
-//     required this.month,
-//     required this.predictionPercentage,
-//   });
+      setState(() {
+        cityDataPoints = cityPredictionCounts.entries
+            .map((entry) => DataPoint(entry.key, entry.value))
+            .toList();
 
-//   factory PredictionData.fromJson(Map<String, dynamic> json) {
-//     return PredictionData(
-//       month: json['month'],
-//       predictionPercentage: json['predictionPercentage'].toDouble(),
-//     );
-//   }
-// }
+        monthDataPoints = monthPredictionCounts.entries
+            .map((entry) => DataPoint(entry.key, entry.value))
+            .toList();
+
+        ageDataPoints = agePredictionCounts.entries
+            .map((entry) => DataPoint(entry.key, entry.value))
+            .toList();
+        genderData = jsonData;
+      });
+    } else {
+      throw Exception('Failed to fetch data');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Data Visualization'),
+      ),
+      body: ListView(
+        padding: EdgeInsets.all(16.0),
+        children: [
+          Text(
+            'Location (City) vs Prediction',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 10),
+          _buildChart(cityDataPoints),
+          SizedBox(height: 20),
+          Text(
+            'Date of Diagnose (Month) vs Prediction',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 10),
+          _buildChart(monthDataPoints),
+          SizedBox(height: 20),
+          Text(
+            'Age Group vs Prediction',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 10),
+          _buildChart(ageDataPoints),
+        Text(
+          'Gender vs HFMD and Not-HFMD Prediction',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 10),
+        _buildStackedChart(genderData),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChart(List<DataPoint> dataPoints) {
+    return Container(
+      height: 200,
+      child: SfCartesianChart(
+        series: <StackedColumnSeries<DataPoint, String>>[
+          StackedColumnSeries<DataPoint, String>(
+            dataSource: dataPoints,
+            xValueMapper: (DataPoint dataPoint, _) => dataPoint.category,
+            yValueMapper: (DataPoint dataPoint, _) => dataPoint.value,
+            dataLabelSettings: DataLabelSettings(
+              isVisible: true,
+              labelAlignment: ChartDataLabelAlignment.middle,
+              labelPosition: ChartDataLabelPosition.inside,
+            ),
+          ),
+        ],
+        primaryXAxis: CategoryAxis(),
+        primaryYAxis: NumericAxis(),
+      ),
+    );
+  }
+  Widget _buildStackedChart(List<dynamic> genderData) {
+    return Container(
+      height: 300,
+      child: StackedColumnChart(genderData),
+    );
+}
+}
+
+class DataPoint {
+  final String category;
+  final int value;
+
+  DataPoint(this.category, this.value);
+}
+
+class _ChartData {
+  final String gender;
+  final int count;
+  final String prediction;
+
+  _ChartData(this.gender, this.count, this.prediction);
+}

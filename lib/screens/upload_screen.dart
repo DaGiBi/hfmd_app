@@ -10,6 +10,8 @@ import 'package:image/image.dart' as img;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:hfmd_app/screens/constant.dart';
+import 'package:hfmd_app/screens/info_screen.dart';
 
 class UploadScreen extends StatefulWidget {
   @override
@@ -28,6 +30,7 @@ class _UploadScreenState extends State<UploadScreen> {
   late LocationData _locationData;
   String _username = '';
   bool _isConnected = false;
+  // bool _interpreterClosed = false;
 
   bool _isFormValid() {    
     return _age != null && _selectedGender != null;
@@ -36,7 +39,14 @@ class _UploadScreenState extends State<UploadScreen> {
   @override
   void initState() {
     super.initState();
-    _loadModel(); _loadSession();
+    _loadSession();
+    _loadModel(); 
+  }
+
+    @override
+  void dispose() {
+    // _closeInterpreter();
+    super.dispose();
   }
   Future<void> _loadSession() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -46,7 +56,17 @@ class _UploadScreenState extends State<UploadScreen> {
       _username = username ?? '';
       _isConnected = isConnected!;
     });
+    _loadModel();
   }
+
+//  Future<void> _closeInterpreter() async {
+//     if (!_interpreterClosed) {
+//       _interpreter.close();
+//       print('Interpreter closed');
+//       _interpreterClosed = true;
+//     }
+//   }
+  
   Future<void> _loadModel() async {
     setState(() {
       _isLoading = true;
@@ -65,6 +85,8 @@ class _UploadScreenState extends State<UploadScreen> {
       });
     } catch (e) {
       print('Error loading model: $e');
+      // _closeInterpreter();
+      _loadModel();
     }
   }
   Future<void> _pickLocation() async {
@@ -113,79 +135,141 @@ class _UploadScreenState extends State<UploadScreen> {
       var prediction = _labels[maxIndex];
       var accuracy = probabilities[maxIndex] * 100; // Calculate the prediction accuracy
 
-    setState(() {
-      _isLoading = false;
-      _prediction = '$prediction\n Accuracy:${accuracy.toStringAsFixed(2)}%}'; // Display the prediction and accuracy
-      _accuracy = double.parse(accuracy.toStringAsFixed(2));
-    });
+      setState(() {
+        _isLoading = false;
+        _prediction = '$prediction\n Accuracy:${accuracy.toStringAsFixed(2)}%}'; // Display the prediction and accuracy
+        _accuracy = double.parse(accuracy.toStringAsFixed(2));
+      });
 
+      // TESTTTING
+      prediction = "HFMD";
     // Store data locally and in MongoDB
       await _storeData(prediction, _accuracy);
-
-  } catch (e) {
+      
+    // Show popup if the prediction is "HFMD"
+      if (prediction == "HFMD") {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Prediction Result'),
+            content: Text('The prediction result is HFMD.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InfoScreen(),
+                    ),
+                  );
+            },
+            child: Text('Learn More about HFMD'),
+          ),   
+            ],
+          ),
+        );
+      }
+    } catch (e) {
     print('Error classifying image: $e');
+  } finally {
+    // Close the interpreter
+    // _closeInterpreter(); 
+    
+    print('turn off');
   }
 }
 
 
-  // Future<Map<String, dynamic>> _getAddress(LocationData location) async{
-  //   final latitude = location.latitude;
-  //   final longitude = location.longitude;
-  //   final apiUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude&zoom=10&format=json&limit=1';
+  Future<Map<String, dynamic>> _getAddress(LocationData location) async{
+    final latitude = location.latitude;
+    final longitude = location.longitude;
+    final apiUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude&zoom=10&format=json&limit=1';
 
-  //   try {
-  //     final response = await http.get(Uri.parse(apiUrl));
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
 
-  //     if (response.statusCode == 200) {
-  //       final jsonData = jsonDecode(response.body) as Map<String, dynamic>;
-  //       return jsonData;
-  //     } else {
-  //       print('Failed to fetch location data. Error: ${response.statusCode}');
-  //     }
-  //   } catch (e) {
-  //     print('Error fetching location data: $e');
-  //   }
-  //   return {};
-  // }
+      if (response.statusCode == 200) {
+        final jsonData = jsonDecode(response.body) as Map<String, dynamic>;
+        return jsonData;
+      } else {
+        print('Failed to fetch location data. Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching location data: $e');
+    }
+    return {};
+  }
   Future<void> _storeData(String prediction, double accuracy) async {
     try {
-      final gender = _selectedGender!;
-      final age = _age!;
-      final location = _locationData; // Replace 'Your Location' with the actual location
-      final imageUri = base64Encode(await _imageFile!.readAsBytes());
-      // final locationFile = await _getAddress(location);
-      // final state = locationFile["address"]["state"];
-      // final city = locationFile["address"]["city"];
-      // Store data locally
-      await _storeLocally(gender, age, location, prediction, accuracy, imageUri);
-      if(_isConnected)
-        // Store data in MongoDB via Flask server API
-        await _storeInMongoDB(gender, age, location, prediction, accuracy, imageUri);
+      if(_isConnected){
+        final gender = _selectedGender!;
+        final age = _age!;
+        final location = _locationData; // Replace 'Your Location' with the actual location
+        final imageUri = base64Encode(await _imageFile!.readAsBytes());
+        final locationFile = await _getAddress(location);
+        final state = locationFile["address"]["state"];
+        final city = locationFile["address"]["city"];
+
+        final data = {
+          'username': _username,
+          'gender': gender,
+          'age': age,
+          'dateDiagnose': DateTime.now().toString(),
+          'location': {
+            'latitude': location.latitude,
+            'longitude': location.longitude,
+            'city': city,
+            'state': state
+            // Add other location properties if needed
+          },
+          'prediction': prediction,
+          'accuracy': accuracy,
+          'image': imageUri,
+        };
+        // Store data locally
+        await _storeLocally(data);
+        
+          // Store data in MongoDB via Flask server API
+        await _storeInMongoDB(data);
+      }
+      // offline mode
+      else{
+        final gender = _selectedGender!;
+        final age = _age!;
+        final location = _locationData; // Replace 'Your Location' with the actual location
+        final imageUri = base64Encode(await _imageFile!.readAsBytes());
+
+        final data = {
+          'gender': gender,
+          'age': age,
+          'dateDiagnose': DateTime.now().toString(),
+          'location': {
+            'latitude': location.latitude,
+            'longitude': location.longitude,
+            // Add other location properties if needed
+          },
+          'prediction': prediction,
+          'accuracy': accuracy,
+          'image': imageUri,
+        };
+        // Store data locally
+        await _storeLocally(data);
+      }
     } catch (e) {
       print('Error storing data: $e');
     }
   }
 
-  Future<void> _storeLocally(
-    String gender, String age, LocationData location, String prediction, double accuracy, String image) async {
+  Future<void> _storeLocally(Map<String, dynamic> data) async {
   try {
     final prefs = await SharedPreferences.getInstance();
-    final storedFile = {
-      'username': _username,
-      'date': DateTime.now().toString(),
-      'gender': gender,
-      'age': age,
-      'location': {
-        'latitude': location.latitude,
-        'longitude': location.longitude,
-        // 'state': state,
-        // 'city': city
-        // Add other location properties if needed
-      },
-      'prediction': prediction,
-      'accuracy': accuracy,
-      'image': image,
-    };
+    final storedFile = data;
 
     final directory = await getApplicationDocumentsDirectory();
     final fileName = DateTime.now().toString() + '.json';
@@ -200,26 +284,14 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 }
 
-  Future<void> _storeInMongoDB(
-      String gender, String age, LocationData location, String prediction, double accuracy,  String image) async {
+  Future<void> _storeInMongoDB(Map<String, dynamic> data) async {
     try {
-      final apiUrl = 'http://192.168.0.110:5000/login'; // Replace with your actual API endpoint
+      final apiUrl = '$constantUrl/save-prediction'; // Replace with your actual API endpoint
 
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'gender': gender,
-          'age': age,
-          'location': {
-          'latitude': location.latitude,
-          'longitude': location.longitude,
-          // Add other location properties if needed
-          },
-          'prediction': prediction,
-          'accuracy': accuracy,
-          'image': image,
-        }),
+        body: jsonEncode(data),
       );
 
       if (response.statusCode == 200) {
@@ -368,7 +440,18 @@ class _UploadScreenState extends State<UploadScreen> {
           Text(
             _prediction,
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),         
+          ), 
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InfoScreen(),
+                ),
+              );
+            },
+            child: Text('Learn More about HFMD'),
+          ),        
         ],
       ),
     );
