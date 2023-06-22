@@ -54,6 +54,7 @@ dependencies:
   latlong2: ^0.8.2
   image_card: ^0.0.4
   flex_color_scheme: ^7.1.2
+  mongo_dart: ^0.9.1
 
 dev_dependencies:
   flutter_test:

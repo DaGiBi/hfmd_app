@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:hfmd_app/screens/constant.dart';
-import 'package:hfmd_app/widget/stacked_chart_gender.dart';
+import 'package:hfmd_app/widgets/stacked_chart_gender.dart';
 
 class AnalyticScreen extends StatefulWidget {
   @override

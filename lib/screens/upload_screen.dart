@@ -1,17 +1,21 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
+// import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:hfmd_app/services/mongo_service.dart';
+import 'package:hfmd_app/utilities/location_utils.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
-import 'package:image/image.dart' as img;
+// import 'package:image/image.dart' as img;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:hfmd_app/screens/constant.dart';
+// import 'package:hfmd_app/screens/constant.dart';
 import 'package:hfmd_app/screens/info_screen.dart';
+
+import 'package:hfmd_app/utilities/image_classififcation.dart';
 
 class UploadScreen extends StatefulWidget {
   @override
@@ -24,6 +28,7 @@ class _UploadScreenState extends State<UploadScreen> {
   List<String> _labels = [];
   bool _isLoading = false;
   String _prediction = ''; //predition label
+  String accuracy = '';
   double  _accuracy = 0.0;
   String? _selectedGender; //gender
   String? _age;   //age
@@ -52,20 +57,17 @@ class _UploadScreenState extends State<UploadScreen> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? username = prefs.getString('username');
     final bool? isConnected = prefs.getBool('isConnected');
+    final locationData = await LocationUtilities.getDeviceLocation();
+
     setState(() {
       _username = username ?? '';
       _isConnected = isConnected!;
+      _locationData = locationData!;
+
     });
     _loadModel();
   }
 
-//  Future<void> _closeInterpreter() async {
-//     if (!_interpreterClosed) {
-//       _interpreter.close();
-//       print('Interpreter closed');
-//       _interpreterClosed = true;
-//     }
-//   }
   
   Future<void> _loadModel() async {
     setState(() {
@@ -89,65 +91,28 @@ class _UploadScreenState extends State<UploadScreen> {
       _loadModel();
     }
   }
-  Future<void> _pickLocation() async {
-    Location location = new Location();
 
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
-
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
-        return;
-      }
-    }
-
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return;
-      }
-    }
-    setState(() async{
-        _locationData = await location.getLocation();
-      });
-  }
-  
   Future<void> _classifyImage() async {
     setState(() {
       _isLoading = true;
     });
 
-    try {
-      var image = img.decodeImage(await _imageFile!.readAsBytes())!;
-      var resizedImage = img.copyResize(image, width: 224, height: 224);
-      var inputImage = _preprocessImage(resizedImage);
-
-      var input = inputImage.reshape([1, 224, 224, 3]);
-      var output = List<double>.filled(2, 0).reshape([1, 2]);
-
-      _interpreter.run(input, output);
-
-      var probabilities = output[0];
-      var maxIndex = probabilities.indexOf(probabilities.reduce((double a, double b) => a > b ? a : b));
-      var prediction = _labels[maxIndex];
-      var accuracy = probabilities[maxIndex] * 100; // Calculate the prediction accuracy
-
+     try {
+      final classificationData = await ImageClassificationService.classifyImage(_imageFile!, _interpreter, _labels);
       setState(() {
         _isLoading = false;
-        _prediction = '$prediction\n Accuracy:${accuracy.toStringAsFixed(2)}%}'; // Display the prediction and accuracy
-        _accuracy = double.parse(accuracy.toStringAsFixed(2));
+        _prediction = classificationData["prediction"];
+        _accuracy = double.parse(classificationData["accuracy"].toStringAsFixed(2));
       });
 
       // TESTTTING
-      prediction = "HFMD";
+      _prediction = "HFMD";
+      accuracy = _accuracy.toString();
     // Store data locally and in MongoDB
-      await _storeData(prediction, _accuracy);
+      await _storeData(_prediction, _accuracy);
       
     // Show popup if the prediction is "HFMD"
-      if (prediction == "HFMD") {
+      if (_prediction == "HFMD") {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -236,7 +201,7 @@ class _UploadScreenState extends State<UploadScreen> {
         await _storeLocally(data);
         
           // Store data in MongoDB via Flask server API
-        await _storeInMongoDB(data);
+        await MongoServices.savePredictionCloud(data);
       }
       // offline mode
       else{
@@ -283,52 +248,6 @@ class _UploadScreenState extends State<UploadScreen> {
     print('Error storing data locally: $e');
   }
 }
-
-  Future<void> _storeInMongoDB(Map<String, dynamic> data) async {
-    try {
-      final apiUrl = '$constantUrl/save-prediction'; // Replace with your actual API endpoint
-
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(data),
-      );
-
-      if (response.statusCode == 200) {
-        print('Data stored in MongoDB successfully');
-      } else {
-        print('Failed to store data in MongoDB');
-      }
-    } catch (e) {
-      print('Error storing data in MongoDB: $e');
-    }
-  }
-  Uint8List _preprocessImage(img.Image image) {
-    var inputSize = 224;
-    var inputMean = 127.5;
-    var inputStd = 127.5;
-
-    var convertedBytes = Uint8List(1 * inputSize * inputSize * 3);
-    var buffer = Uint8List.view(convertedBytes.buffer);
-
-    var pixelIndex = 0;
-    for (var i = 0; i < inputSize; i++) {
-      for (var j = 0; j < inputSize; j++) {
-        var pixel = image.getPixel(j, i);
-
-        buffer[pixelIndex++] = ((pixel >> 16) & 0xFF);
-        buffer[pixelIndex++] = ((pixel >> 8) & 0xFF);
-        buffer[pixelIndex++] = ((pixel) & 0xFF);
-      }
-    }
-
-    for (var i = 0; i < convertedBytes.length; i++) {
-      var pixel = convertedBytes[i];
-      convertedBytes[i] = ((pixel - inputMean) ~/ inputStd).toUnsigned(8);
-    }
-
-    return convertedBytes;
-  }
 
   Future<void> _pickImage() async {
     final imagePicker = ImagePicker();
@@ -414,7 +333,6 @@ class _UploadScreenState extends State<UploadScreen> {
               : ElevatedButton(
                   onPressed: () {
                     if (_isFormValid()) {
-                      _pickLocation();
                       _pickImage();
                     } else {
                       showDialog(
@@ -439,6 +357,10 @@ class _UploadScreenState extends State<UploadScreen> {
           SizedBox(height: 20),
           Text(
             _prediction,
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            accuracy,
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ), 
           ElevatedButton(

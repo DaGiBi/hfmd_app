@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:hfmd_app/screens/constant.dart';
+import 'package:hfmd_app/services/mongo_service.dart';
+// import 'dart:convert';
+// import 'package:http/http.dart' as http;
+// import 'package:hfmd_app/screens/constant.dart';
 
 class MapScreen extends StatefulWidget {
   @override
@@ -19,20 +20,10 @@ class _MapScreenState extends State<MapScreen> {
     fetchData();
   }
 
-  Future<void> fetchData() async {
-    try {
-      final response = await http.get(Uri.parse('$constantUrl/get-data-hfmd'));
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        setState(() {
-          markers = data.map((item) => MapMarker.fromJson(item)).toList();
-        });
-      } else {
-        print('Error: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error loading stored files: $e');
-    }
+   Future<void> fetchData() async {
+    markers = await MongoServices.fetchHotspot();
+    // print(markers);
+    setState(() {});
   }
 
   @override
@@ -50,8 +41,8 @@ class _MapScreenState extends State<MapScreen> {
             Flexible(
               child: FlutterMap(
                 options: MapOptions(
-                  center: LatLng(3.0, 101.0),
-                  zoom: 5,
+                  center: LatLng(3.0, 101.6),
+                  zoom: 11,
                   maxBounds: LatLngBounds(
                     LatLng(-90, -180),
                     LatLng(90, 180),
@@ -85,25 +76,3 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-class MapMarker {
-  final String dateDiagnose;
-  final double latitude;
-  final double longitude;
-  final String prediction;
-
-  MapMarker({
-    required this.dateDiagnose,
-    required this.latitude,
-    required this.longitude,
-    required this.prediction,
-  });
-
-  factory MapMarker.fromJson(Map<String, dynamic> json) {
-    return MapMarker(
-      dateDiagnose: json['dateDiagnose'],
-      latitude: json['location']['latitude'],
-      longitude: json['location']['longitude'],
-      prediction: json['prediction'],
-    );
-  }
-}

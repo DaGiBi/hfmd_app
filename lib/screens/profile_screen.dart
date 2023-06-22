@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:hfmd_app/screens/constant.dart';
+// import 'package:http/http.dart' as http;
+// import 'dart:convert';
+// import 'package:hfmd_app/services/mongo_constant.dart';
+// import 'package:mongo_dart/mongo_dart.dart' as mongo;
+// import 'package:hfmd_app/services/mongo_service.dart';
+
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -24,35 +27,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadSession() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? username = prefs.getString('username');
+    final String? phone = prefs.getString('phone');
+    final String? email = prefs.getString('email');
+    final String? gender = prefs.getString('gender');
+    
 
     setState(() {
       _username = username ?? '';
+      _phone = phone ?? '';
+      _email = email ?? '';
+      _gender = gender ?? '';
     });
-    // Fetch user data from MongoDB
-    try {
-      String url = '$constantUrl/get-user/$_username';
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final userData = json.decode(response.body);
-        setState(() {
-          _email = userData['email'];
-          _phone = userData['phone'];
-          _gender = userData['gender'];
-        });
-      } else {
-        // Handle error response
-        print('Failed to fetch user data: ${response.statusCode}');
-      }
-    } catch (e) {
-      // Handle request error
-      print('Error fetching user data: $e');
-    }
   }
 
   Future<void> _logout() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    await prefs.remove("username");
+    await prefs.remove('username');
 
     Navigator.pushReplacementNamed(context, '/');
   }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hfmd_app/services/mongo_service.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'package:hfmd_app/screens/constant.dart';
+// import 'package:http/http.dart' as http;
+// import 'package:hfmd_app/screens/constant.dart';
 
 class ListScreen extends StatefulWidget {
   @override
@@ -70,23 +71,16 @@ class _ListScreenState extends State<ListScreen> {
 
    Future<void> fetchData() async {
     try {
-      final response = await http.get(Uri.parse('$constantUrl/get-file/$_username'));
-      print(_username);
-      if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body) as List<dynamic>;
-          // print(jsonData);
-          setState(() {
-            fileList = jsonData;
-          });
-      } else {
-        print('Error fetching data: ${response.statusCode}');
-      }
+      final data = await MongoServices.fetchData(_username);
+
+      setState(() {
+        fileList = data;
+      });
     } catch (e) {
       print('Error: $e');
-      // fetchData();
-      
     }
   }
+  
   @override
   Widget build(BuildContext context) {
     if(_isConnected){

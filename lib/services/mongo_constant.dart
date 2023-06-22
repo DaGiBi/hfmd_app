@@ -1,0 +1,1 @@
+const String constantUrl = 'mongodb+srv://public_user:public_user11111@cluster0.s4pedku.mongodb.net/hfmd_db?retryWrites=true&w=majority';

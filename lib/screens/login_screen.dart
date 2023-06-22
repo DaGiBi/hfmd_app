@@ -1,9 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:hfmd_app/screens/constant.dart';
+// import 'package:hfmd_app/screens/constant.dart';
 import 'package:hfmd_app/screens/register_screen.dart';
-import 'package:http/http.dart' as http;
+import 'package:hfmd_app/services/mongo_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -15,31 +13,33 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // for easy debug login
-  Future<void> _login_pass() async {
-    final String username = "najib";
-      // Login successful, save session and navigate to the home screen
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('username', username);
-      Navigator.pushReplacementNamed(context, '/bottomBar');
-  } 
-
+  Future<void> _Bypass() async{
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', "najib");
+    await prefs.setString('email', "najib@mail");
+    await prefs.setString('phone', "01911092");
+    await prefs.setString('gender', "male");
+    Navigator.pushReplacementNamed(context, '/bottomBar');
+  }
   Future<void> _login() async {
     final String username = _usernameController.text;
     final String password = _passwordController.text;
 
-    const String url = '$constantUrl/login';
+    final loginService = MongoServices();
+    final loginResult = await loginService.login(username, password);
 
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': username, 'password': password}),
-    );
-
-    if (response.statusCode == 200) {
+    if (loginResult == LoginResult.success) {
       // Login successful, save session and navigate to the home screen
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('username', username);
+      final mongoService = MongoServices();
+      final userData = await mongoService.getUserProfile(username);
+
+      if (userData != null) {
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('username', username);
+        await prefs.setString('email', userData['email']);
+        await prefs.setString('phone', userData['phone']);
+        await prefs.setString('gender', userData['gender']);
+      }
 
       Navigator.pushReplacementNamed(context, '/bottomBar');
     } else {
@@ -89,15 +89,14 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Text('Login'),
               onPressed: _login,
             ),
-             ElevatedButton(
+            ElevatedButton(
               child: Text('Registers'),
               onPressed: _navigateToRegisterScreen,
             ),
-
             ElevatedButton(
-            child: Text('Bypass'),
-            onPressed: _login_pass,
-          ) ,
+              child: Text('Bypass'),
+              onPressed: _Bypass,
+            ),
           ],
         ),
       ),

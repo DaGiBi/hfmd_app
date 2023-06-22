@@ -1,8 +1,8 @@
-import 'dart:convert';
+// import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:hfmd_app/screens/constant.dart';
+// import 'package:hfmd_app/screens/constant.dart';
+import 'package:hfmd_app/services/mongo_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -18,22 +18,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final _formKey = GlobalKey<FormState>(); // Form key for validation
 
-  Future<bool> _validateUsername(String username) async {
-    const url = '$constantUrl/validate-username';
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': username}),
-    );
-
-    if (response.statusCode == 200) {
-      final jsonResponse = jsonDecode(response.body);
-      return jsonResponse['valid'];
-    }
-
-    return false;
-  }
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       final String username = _usernameController.text;
@@ -41,8 +25,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final String email = _emailController.text;
       final String phone = _phoneController.text;
       final String gender = _genderController.text;
-      
-      final bool isUsernameValid = await _validateUsername(username);
+
+      final bool isUsernameValid = await MongoServices.validateUsername(username);
+
       if (!isUsernameValid) {
         showDialog(
           context: context,
@@ -59,53 +44,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
         return;
       }
-      const String url = '$constantUrl/register-user';
 
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': username,
-          'password': password,
-          'email': email,
-          'phone': phone,
-          'gender': gender,
-        }),
+      final userData = {
+        'username': username,
+        'password': password,
+        'email': email,
+        'phone': phone,
+        'gender': gender,
+      };
+
+      await MongoServices.registerUser(userData);
+
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text('Registration Success'),
+          content: Text('Username: $username has been registered.'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.pop(context); // Close the dialog
+                Navigator.pushReplacementNamed(context, '/login'); // Navigate to the login screen
+              },
+            ),
+          ],
+        ),
       );
-
-      if (response.statusCode == 201) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text('Registration Success'),
-            content: Text('Username: $username has been registered.'),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.pop(context); // Close the dialog
-                  Navigator.pushReplacementNamed(context, '/login'); // Navigate to the login screen
-                },
-              ),
-            ],
-          ),
-        );
-      } else {
-        // Registration failed, display an error message
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text('Registration Error'),
-            content: Text('Failed to register user. ${response.statusCode}'),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      }
     }
   }
 
@@ -173,7 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   if (_formKey.currentState!.validate()) {
                     _register();
                   }
-                }
+                },
               ),
             ],
           ),

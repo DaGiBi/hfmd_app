@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:connectivity/connectivity.dart';
-import 'package:hfmd_app/screens/login_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:hfmd_app/screens/login_screen.dart';
+import 'package:hfmd_app/utilities/check_connectivity.dart';
 
 class LandingScreen extends StatefulWidget {
   @override
@@ -19,11 +18,6 @@ class _LandingScreenState extends State<LandingScreen> {
     _checkInternetConnectivity();
   }
 
-  Future<bool> checkInternetConnectivity() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    return connectivityResult != ConnectivityResult.none;
-  }
-
   Future<void> _checkInternetConnectivity() async {
     bool isConnected = await checkInternetConnectivity();
     setState(() {
@@ -31,7 +25,6 @@ class _LandingScreenState extends State<LandingScreen> {
       _isLoading = false;
     });
     if (isConnected) {
-
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isConnected', _isConnected);
       // Connected to the internet, navigate to the login screen

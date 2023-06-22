@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:hfmd_app/widget/spread_screen.dart';
-import 'package:hfmd_app/widget/prevention_screen.dart';
-import 'package:hfmd_app/widget/treatment_screen.dart';
+import 'package:hfmd_app/widgets/spread_screen.dart';
+import 'package:hfmd_app/widgets/prevention_screen.dart';
+import 'package:hfmd_app/widgets/treatment_screen.dart';
 import 'package:image_card/image_card.dart';
-import 'package:hfmd_app/widget/symptoms_screen.dart';
+import 'package:hfmd_app/widgets/symptoms_screen.dart';
 
 class InfoScreen extends StatefulWidget {
   const InfoScreen({super.key});
