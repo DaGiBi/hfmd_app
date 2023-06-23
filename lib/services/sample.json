@@ -1,0 +1,32 @@
+{
+    "_id": {
+      "$oid": "647e428d388efce2294877c4"
+    },
+    "username": "najib",
+    "gender": "Male",
+    "age": "20",
+    "dateDiagnose": "2023-06-05 20:16:12.372753",
+    "location": {
+      "latitude": 3.0711017,
+      "longitude": 101.4837367,
+      "city": "Shah Alam",
+      "state": "Selangor"
+    },
+    "prediction": "HFMD",
+    "accuracy": 59.95,
+    "image": ""
+}
+
+{
+    "_id": {
+      "$oid": "647de4051994d691650b51d4"
+    },
+    "username": "Fahmi",
+    "password": "11111",
+    "email": "fahmifahmi@gmail.com",
+    "phone": "092311341",
+    "gender": "male",
+    "date_created": {
+      "$date": "2023-06-05T21:32:53.248Z"
+    }
+  }

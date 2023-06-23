@@ -36,6 +36,7 @@ class MapMarker {
 class MongoServices {
   final String uriString = constantUrl;
 
+  // api for login
   Future<LoginResult> login(String username, String password) async {
     
     try {
@@ -55,7 +56,7 @@ class MongoServices {
       return LoginResult.error;
     } 
   }
-
+// api fo user profile
   Future<Map<String, dynamic>?> getUserProfile(String username) async {
     try {
       final db = await mongo.Db.create(constantUrl);
@@ -72,7 +73,7 @@ class MongoServices {
       return null;
     }
   }
-
+// api for validation
   static Future<bool> validateUsername(String username) async {
     final db = await mongo.Db.create(constantUrl);
     await db.open();
@@ -85,7 +86,7 @@ class MongoServices {
 
     return count == 0;
   }
-
+// a[i for user registration
   static Future<void> registerUser(Map<String, String> userData) async {
     final db = await mongo.Db.create(constantUrl);
     await db.open();
@@ -95,7 +96,7 @@ class MongoServices {
 
     await db.close();
   }
-
+  // api for fetch data based on user
   static Future<List<dynamic>> fetchData(String username) async {
     try {
       final db = await mongo.Db.create(constantUrl);
@@ -112,8 +113,8 @@ class MongoServices {
       return [];
     }
   }
-
-static Future<List<MapMarker>> fetchHotspot() async {
+  // appi for fetch marker positive hfmd
+  static Future<List<MapMarker>> fetchHotspot() async {
     try {
       final db = await mongo.Db.create(constantUrl);
       await db.open();
@@ -128,7 +129,7 @@ static Future<List<MapMarker>> fetchHotspot() async {
       return [];
     }
   }
-    
+  // apir for save prediction result
   static Future<void> savePredictionCloud(Map<String, dynamic> data) async {
     try {
       final db = await mongo.Db.create(constantUrl);
@@ -141,6 +142,21 @@ static Future<List<MapMarker>> fetchHotspot() async {
       print('Data stored in MongoDB successfully');
     } catch (e) {
       print('Error storing data in MongoDB: $e');
+    }
+  }
+  // apir for fetch analytic data
+  static Future<List<dynamic>?> fetchAnalyticData() async {
+    try {
+      final db = await mongo.Db.create(constantUrl);
+      await db.open();
+
+      final predictionCollection = db.collection('predictions');
+      final data = await predictionCollection.find().toList();
+      await db.close();
+      return data;
+    } catch (e) {
+      print('Error storing data in MongoDB: $e');
+      return null;
     }
   }
 }

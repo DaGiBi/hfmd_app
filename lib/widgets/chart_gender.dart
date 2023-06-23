@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-class StackedColumnChart extends StatelessWidget {
+class ChartGender extends StatelessWidget {
   final List<dynamic> genderData;
 
-  StackedColumnChart(this.genderData);
+  ChartGender(this.genderData);
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       height: 200,
       child: SfCartesianChart(
-        legend: Legend(isVisible: true, position: LegendPosition.bottom),
+        legend: Legend(
+          isVisible: true,
+          position: LegendPosition.bottom,
+          textStyle: theme.textTheme.bodyText1,
+          iconBorderColor: theme.primaryColor,
+        ),
         series: <ChartSeries>[
           StackedColumnSeries<_ChartData, String>(
             dataSource: getChartData(genderData, 'Male'),
@@ -21,8 +28,11 @@ class StackedColumnChart extends StatelessWidget {
               isVisible: true,
               labelAlignment: ChartDataLabelAlignment.middle,
               labelPosition: ChartDataLabelPosition.inside,
+              textStyle: theme.textTheme.bodyText2!.copyWith(
+                color: theme.colorScheme.onPrimary,
+              ),
             ),
-            color: Color.fromRGBO(29, 130, 139, 1), // Male - HFMD
+            color: theme.colorScheme.secondary,
             name: 'Male',
           ),
           StackedColumnSeries<_ChartData, String>(
@@ -33,8 +43,11 @@ class StackedColumnChart extends StatelessWidget {
               isVisible: true,
               labelAlignment: ChartDataLabelAlignment.middle,
               labelPosition: ChartDataLabelPosition.inside,
+              textStyle: theme.textTheme.bodyText2!.copyWith(
+                color: theme.colorScheme.onPrimary,
+              ),
             ),
-            color: Color.fromRGBO(238, 64, 53, 1), // Female - HFMD
+            color: theme.colorScheme.tertiary,
             name: 'Female',
           ),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hfmd_app/services/mongo_service.dart';
-import 'dart:io';
+import 'package:hfmd_app/utilities/local_storing_utils.dart';
+// import 'dart:io';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -57,17 +58,7 @@ class _ListScreenState extends State<ListScreen> {
     }
   }
 
-  Future<Map<String, dynamic>> loadFileData(String fileName) async {
-    try {
-      final file = File(fileName);
-      final jsonData = await file.readAsString();
-      final data = jsonDecode(jsonData);
-      return data;
-    } catch (e) {
-      print('Error loading file data: $e');
-      return {};
-    }
-  }
+  
 
    Future<void> fetchData() async {
     try {
@@ -134,7 +125,7 @@ class _ListScreenState extends State<ListScreen> {
           itemBuilder: (context, index) {
             final fileName = fileNames[index];
             return FutureBuilder(
-              future: loadFileData(fileName),
+              future: LocalStoringUtillities.loadFileData(fileName),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return ListTile(

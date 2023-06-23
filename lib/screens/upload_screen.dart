@@ -2,21 +2,22 @@ import 'dart:io';
 import 'dart:convert';
 // import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+// import 'package:flutter/services.dart' show rootBundle;
 import 'package:hfmd_app/services/mongo_service.dart';
+import 'package:hfmd_app/utilities/local_storing_utils.dart';
 import 'package:hfmd_app/utilities/location_utils.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
 // import 'package:image/image.dart' as img;
-import 'package:http/http.dart' as http;
+// import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path_provider/path_provider.dart';
+// import 'package:path_provider/path_provider.dart';
 // import 'package:hfmd_app/screens/constant.dart';
 import 'package:hfmd_app/screens/info_screen.dart';
 
 import 'package:hfmd_app/utilities/image_classififcation.dart';
-
+import 'package:hfmd_app/utilities/model_utils.dart';
 class UploadScreen extends StatefulWidget {
   @override
   _UploadScreenState createState() => _UploadScreenState();
@@ -75,12 +76,9 @@ class _UploadScreenState extends State<UploadScreen> {
     });
 
     try {
-      var interpreterOptions = InterpreterOptions();
-      _interpreter = await Interpreter.fromAsset('assets/model.tflite',
-          options: interpreterOptions);
-
-      var labelsData = await rootBundle.loadString('assets/label.txt');
-      _labels = labelsData.split('\n');
+      
+      _interpreter = await ModelServices.loadInterpreter();
+      _labels = await ModelServices.loadLabel();
 
       setState(() {
         _isLoading = false;
@@ -150,26 +148,6 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 }
 
-
-  Future<Map<String, dynamic>> _getAddress(LocationData location) async{
-    final latitude = location.latitude;
-    final longitude = location.longitude;
-    final apiUrl = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude&zoom=10&format=json&limit=1';
-
-    try {
-      final response = await http.get(Uri.parse(apiUrl));
-
-      if (response.statusCode == 200) {
-        final jsonData = jsonDecode(response.body) as Map<String, dynamic>;
-        return jsonData;
-      } else {
-        print('Failed to fetch location data. Error: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error fetching location data: $e');
-    }
-    return {};
-  }
   Future<void> _storeData(String prediction, double accuracy) async {
     try {
       if(_isConnected){
@@ -177,7 +155,7 @@ class _UploadScreenState extends State<UploadScreen> {
         final age = _age!;
         final location = _locationData; // Replace 'Your Location' with the actual location
         final imageUri = base64Encode(await _imageFile!.readAsBytes());
-        final locationFile = await _getAddress(location);
+        final locationFile = await LocationUtilities.getCityState(location);
         final state = locationFile["address"]["state"];
         final city = locationFile["address"]["city"];
 
@@ -198,7 +176,7 @@ class _UploadScreenState extends State<UploadScreen> {
           'image': imageUri,
         };
         // Store data locally
-        await _storeLocally(data);
+        await LocalStoringUtillities.storeLocally(data);
         
           // Store data in MongoDB via Flask server API
         await MongoServices.savePredictionCloud(data);
@@ -224,30 +202,12 @@ class _UploadScreenState extends State<UploadScreen> {
           'image': imageUri,
         };
         // Store data locally
-        await _storeLocally(data);
+       await LocalStoringUtillities.storeLocally(data);
       }
     } catch (e) {
       print('Error storing data: $e');
     }
   }
-
-  Future<void> _storeLocally(Map<String, dynamic> data) async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    final storedFile = data;
-
-    final directory = await getApplicationDocumentsDirectory();
-    final fileName = DateTime.now().toString() + '.json';
-    final file = File('${directory.path}/$fileName');
-    await file.writeAsString(jsonEncode(storedFile));
-
-    await prefs.setString('stored_file', fileName);
-
-    print('Data stored locally successfully');
-  } catch (e) {
-    print('Error storing data locally: $e');
-  }
-}
 
   Future<void> _pickImage() async {
     final imagePicker = ImagePicker();
