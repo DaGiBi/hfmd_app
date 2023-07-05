@@ -29,8 +29,9 @@ class _UploadScreenState extends State<UploadScreen> {
   List<String> _labels = [];
   bool _isLoading = false;
   String _prediction = ''; //predition label
-  String accuracy = '';
-  double  _accuracy = 0.0;
+  double accuracy = 0.0;
+  String prediction = '';
+  String  _accuracy = '';
   String? _selectedGender; //gender
   String? _age;   //age
   late LocationData _locationData;
@@ -97,20 +98,21 @@ class _UploadScreenState extends State<UploadScreen> {
 
      try {
       final classificationData = await ImageClassificationService.classifyImage(_imageFile!, _interpreter, _labels);
+
+      prediction = classificationData["prediction"];
+      accuracy = double.parse(classificationData["accuracy"].toStringAsFixed(2));
+      // TESTTTING
+      prediction = "HFMD";
       setState(() {
         _isLoading = false;
-        _prediction = classificationData["prediction"];
-        _accuracy = double.parse(classificationData["accuracy"].toStringAsFixed(2));
+        _prediction = "Prediction Result: $prediction";
+        _accuracy = accuracy.toString();
       });
-
-      // TESTTTING
-      _prediction = "HFMD";
-      accuracy = _accuracy.toString();
     // Store data locally and in MongoDB
-      await _storeData(_prediction, _accuracy);
+      await _storeData(prediction, accuracy);
       
     // Show popup if the prediction is "HFMD"
-      if (_prediction == "HFMD") {
+      if (prediction == "HFMD") {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -153,7 +155,7 @@ class _UploadScreenState extends State<UploadScreen> {
       if(_isConnected){
         final gender = _selectedGender!;
         final age = _age!;
-        final location = _locationData; // Replace 'Your Location' with the actual location
+        final location = _locationData; // 
         final imageUri = base64Encode(await _imageFile!.readAsBytes());
         final locationFile = await LocationUtilities.getCityState(location);
         final state = locationFile["address"]["state"];
@@ -217,6 +219,7 @@ class _UploadScreenState extends State<UploadScreen> {
       setState(() {
         _imageFile = File(pickedImage.path);
         _prediction = '';
+        _accuracy = '';
       });
       _classifyImage();
     }
@@ -320,7 +323,7 @@ class _UploadScreenState extends State<UploadScreen> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           Text(
-            accuracy,
+            _accuracy,
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ), 
           ElevatedButton(

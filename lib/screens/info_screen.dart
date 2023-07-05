@@ -20,7 +20,7 @@ class InfoScreenState extends State<InfoScreen> {
 
    return Scaffold(
       appBar: AppBar(
-        title: Text('Image card demo'),
+        title: Text('HFMD Information'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

@@ -5,6 +5,8 @@ import 'package:hfmd_app/utilities/local_storing_utils.dart';
 import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../utilities/location_utils.dart';
 // import 'package:http/http.dart' as http;
 // import 'package:hfmd_app/screens/constant.dart';
 
@@ -79,38 +81,52 @@ class _ListScreenState extends State<ListScreen> {
       appBar: AppBar(
         title: Text('List Prediction Online'),
       ),
-      body: ListView.builder(
-        itemCount: fileList.length,
-        itemBuilder: (context, index) {
-          final fileData = fileList[index] as Map<String, dynamic>;
-          final imageBase64 = fileData['image'];
-          final imageBytes = base64Decode(imageBase64);
-          final imageWidget = Image.memory(imageBytes);
+      body: Padding(
+          padding: const EdgeInsets.all(16.0), // Adjust the padding value as needed
+          child:ListView.builder(
+          itemCount: fileList.length,
+          itemBuilder: (context, index) {
+            final fileData = fileList[index] as Map<String, dynamic>;
+            final imageBase64 = fileData['image'];
+            final imageBytes = base64Decode(imageBase64);
+            final imageWidget = Image.memory(
+                  imageBytes,
+                  height: 100, 
+                  width: 200, 
+                );
 
-          return Card(
-            child: ListTile(
-              title: Text('File Name: ${fileData['username']}'),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Gender: ${fileData['gender']}'),
-                  Text('Age: ${fileData['age']}'),
-                  Text('Location: Latitude ${fileData['location']['latitude']}, Longitude ${fileData['location']['longitude']}'),
-                  Text('Location: State ${fileData['location']['state']}, City ${fileData['location']['city']}'),
-                  Text('Prediction: ${fileData['prediction']}'),
-                  Text('Accuracy: ${fileData['accuracy']}'),
-                  Text('Username: ${fileData['username']}'),
-                  Text('Date: ${fileData['dateDiagnose']}'),
-                  SizedBox(height: 10),
-                  Container(
-                    alignment: Alignment.center,
-                    child: imageWidget,
-                  ),
-                ],
+            return Card(
+              child: ListTile(
+                title: Text('Result: ${fileData['prediction']}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    Container(
+                      alignment: Alignment.center,
+                      child: imageWidget,
+                    ),
+                    Text('\nAccuracy: ${fileData['accuracy']}'),
+                    Text('Username: ${fileData['username']}'),
+                    Text('Date: ${fileData['dateDiagnose']}'),
+                    Text('Gender: ${fileData['gender']},\t Age: ${fileData['age']}'),
+                    const Text("Location:"),
+                    Text('\t\t\tState: ${fileData['location']['state']}, City: ${fileData['location']['city']}'),
+                    const SizedBox(height: 2),
+                    ElevatedButton(
+                      onPressed: () => LocationUtilities.openGoogleMaps(
+                        fileData['location']['latitude'].toString(),
+                        fileData['location']['longitude'].toString(),
+                      ),
+                      child: const Text('Open Location in Map'),
+                    ),
+                    
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
 
@@ -120,54 +136,59 @@ class _ListScreenState extends State<ListScreen> {
         appBar: AppBar(
           title: Text('List Prediction Offline'),
         ),
-        body: ListView.builder(
-          itemCount: fileNames.length,
-          itemBuilder: (context, index) {
-            final fileName = fileNames[index];
-            return FutureBuilder(
-              future: LocalStoringUtillities.loadFileData(fileName),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return ListTile(
-                    title: Text('Loading...'),
-                  );
-                } else if (snapshot.hasError) {
-                  return ListTile(
-                    title: Text('Error loading file'),
-                  );
-                } else {
-                  final fileData = snapshot.data as Map<String, dynamic>;
-                  final imageBase64 = fileData['image'];
-                  final imageBytes = base64Decode(imageBase64);
-                  final imageWidget = Image.memory(imageBytes);
+        body: Padding(
+          padding: const EdgeInsets.all(16.0), // Adjust the padding value as needed
+          child: ListView.builder(
+            itemCount: fileNames.length,
+            itemBuilder: (context, index) {
+              final fileName = fileNames[index];
+              return FutureBuilder(
+                future: LocalStoringUtillities.loadFileData(fileName),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return ListTile(
+                      title: Text('Loading...'),
+                    );
+                  } else if (snapshot.hasError) {
+                    return ListTile(
+                      title: Text('Error loading file'),
+                    );
+                  } else {
+                    final fileData = snapshot.data as Map<String, dynamic>;
+                    final imageBase64 = fileData['image'];
+                    final imageBytes = base64Decode(imageBase64);
+                    final imageWidget = Image.memory(
+                      imageBytes,
+                      height: 100, 
+                      width: 200, 
+                    );
 
-                  return Card(
-                    child: ListTile(
-                      title: Text('File Name: $fileName'),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Gender: ${fileData['gender']}'),
-                          Text('Age: ${fileData['age']}'),
-                          Text('Location: Latitude ${fileData['location']['latitude']}, Longitude ${fileData['location']['longitude']}'),
-                          // Text('Location: State ${fileData['location']['state']}, City ${fileData['location']['city']}'),
-                          Text('Prediction: ${fileData['prediction']}'),
-                          Text('Accuracy: ${fileData['accuracy']}'),
-                          Text('Username: ${fileData['username']}'),
-                          Text('date: ${fileData['dateDiagnose']}'),
-                          SizedBox(height: 10),
-                          Container(
-                            alignment: Alignment.center,
-                            child: imageWidget,
-                          ),
-                        ],
+                    return Card(
+                      child: ListTile(
+                        title: Text('Result: ${fileData['prediction']}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 10),
+                            Container(
+                              alignment: Alignment.center,
+                              child: imageWidget,
+                            ),
+                            Text('\nAccuracy: ${fileData['accuracy']}'),
+                            Text('Date: ${fileData['dateDiagnose']}'),
+                            Text('Gender: ${fileData['gender']},\t Age: ${fileData['age']}'),
+                            const Text("Location:"),
+                            Text('\t\t\Latitude: ${fileData['location']['latitude']}, Longitude: ${fileData['location']['longitude']}'),
+                            const SizedBox(height: 2),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }
-              },
-            );
-          },
+                    );
+                  }
+                },
+              );
+            },
+          ),
         ),
       );
     }

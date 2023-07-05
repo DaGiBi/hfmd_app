@@ -47,11 +47,11 @@ class _LoginScreenState extends State<LoginScreen> {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          title: Text('Login Error'),
-          content: Text('Invalid username or password.'),
+          title: const Text('Login Error'),
+          content: const Text('Invalid username or password.'),
           actions: [
             TextButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () => Navigator.pop(context),
             ),
           ],
@@ -70,32 +70,31 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
               controller: _usernameController,
-              decoration: InputDecoration(labelText: 'Username'),
+              decoration: const InputDecoration(labelText: 'Username'),
             ),
+            const SizedBox(height: 16), // Add spacing of 16 pixels
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
+              decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
+            const SizedBox(height: 16), // Add spacing of 16 pixels
             ElevatedButton(
-              child: Text('Login'),
+              child: const Text('Login'),
               onPressed: _login,
             ),
+            const SizedBox(height: 16), // Add spacing of 16 pixels
             ElevatedButton(
-              child: Text('Registers'),
+              child: const Text('Register'),
               onPressed: _navigateToRegisterScreen,
-            ),
-            ElevatedButton(
-              child: Text('Bypass'),
-              onPressed: _Bypass,
             ),
           ],
         ),

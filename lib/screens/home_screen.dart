@@ -35,24 +35,16 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Logged-in User: $_username',
+              'Welcome, $_username',
               style: Theme.of(context).textTheme.headline6,
             ),
             SizedBox(height: 16),
-            ElevatedButton(
-              child: Text(
-                'Edit Profile',
-                style: Theme.of(context).textTheme.button,
+            if (!_isConnected)
+              Text(
+                'Mode: Offline',
+                style: Theme.of(context).textTheme.bodyText2,
               ),
-              onPressed: () {
-                // Implement profile editing functionality
-              },
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Mode: ${_isConnected ? 'Connected' : 'Disconnected'}',
-              style: Theme.of(context).textTheme.bodyText2,
-            ),
+            
           ],
         ),
       ),

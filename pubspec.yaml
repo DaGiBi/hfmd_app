@@ -55,6 +55,8 @@ dependencies:
   image_card: ^0.0.4
   flex_color_scheme: ^7.1.2
   mongo_dart: ^0.9.1
+  flutter_map_marker_cluster: ^1.1.1
+  url_launcher: ^6.1.11
 
 dev_dependencies:
   flutter_test:

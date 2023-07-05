@@ -1,6 +1,7 @@
 import 'package:location/location.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 class LocationUtilities {
   static Future<LocationData?> getDeviceLocation() async {
@@ -47,5 +48,12 @@ class LocationUtilities {
       print('Error fetching location data: $e');
     }
     return {};
+  }
+
+  static void openGoogleMaps(String latitude, String longitude) async {
+    final Uri url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$latitude,$longitude');
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
   }
 }

@@ -10,28 +10,57 @@ enum LoginResult {
   error,
 }
 
-class MapMarker {
+class HFMDMarker {
   final String dateDiagnose;
+  final String timeDiagnose;
   final double latitude;
   final double longitude;
   final String prediction;
 
-  MapMarker({
+  HFMDMarker({
     required this.dateDiagnose,
+    required this.timeDiagnose,
     required this.latitude,
     required this.longitude,
     required this.prediction,
   });
 
-  factory MapMarker.fromJson(Map<String, dynamic> json) {
-    return MapMarker(
-      dateDiagnose: json['dateDiagnose'],
+  factory HFMDMarker.fromJson(Map<String, dynamic> json) {
+    final dateDiagnose = json['dateDiagnose'];
+    final formattedDate = dateDiagnose.split(' ')[0]; // Extracting the date part
+    final formattedTime = dateDiagnose.split(' ')[1].split('.')[0]; // Extracting the time part
+
+    return HFMDMarker(
+      dateDiagnose: formattedDate,
+      timeDiagnose: formattedTime,
       latitude: json['location']['latitude'],
       longitude: json['location']['longitude'],
       prediction: json['prediction'],
     );
   }
 }
+// facilties marker
+class FacilitiesMarker {
+  final String facilityName;
+  final double latitude;
+  final double longitude;
+
+  FacilitiesMarker({
+    required this.facilityName,
+    required this.latitude,
+    required this.longitude,
+  });
+
+  factory FacilitiesMarker.fromJson(Map<String, dynamic> json) {
+
+    return FacilitiesMarker(
+      facilityName: json['facilityName'],
+      latitude: json['location']['latitude'],
+      longitude: json['location']['longitude'],
+    );
+  }
+}
+
 
 class MongoServices {
   final String uriString = constantUrl;
@@ -114,7 +143,7 @@ class MongoServices {
     }
   }
   // appi for fetch marker positive hfmd
-  static Future<List<MapMarker>> fetchHotspot() async {
+  static Future<List<HFMDMarker>> fetchHotspot() async {
     try {
       final db = await mongo.Db.create(constantUrl);
       await db.open();
@@ -123,12 +152,28 @@ class MongoServices {
       final data = await predictionCollection.find(query).toList();
       await db.close();
       print("searchinh");
-      return data.map((item) => MapMarker.fromJson(item)).toList();
+      return data.map((item) => HFMDMarker.fromJson(item)).toList();
     } catch (e) {
       print('Error: $e');
       return [];
     }
   }
+  // appi for fetch facilities marker  
+  static Future<List<FacilitiesMarker>> fetchFacilities() async {
+    try {
+      final db = await mongo.Db.create(constantUrl);
+      await db.open();
+      final facilitesCollection = db.collection('facilities');
+      final data = await facilitesCollection.find().toList();
+      await db.close();
+      print("searchinhg");
+      return data.map((item) => FacilitiesMarker.fromJson(item)).toList();
+    } catch (e) {
+      print('Error: $e');
+      return [];
+    }
+  }
+
   // apir for save prediction result
   static Future<void> savePredictionCloud(Map<String, dynamic> data) async {
     try {
