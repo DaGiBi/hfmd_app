@@ -1,6 +1,9 @@
 HFMD Digital Mobile Diagnosis App using VGG-16
+
 Overview
-This repository contains the source code for an Hand, Foot, and Mouth Disease (HFMD) Digital Mobile Diagnosis App. The application utilizes the VGG-16 model for HFMD recognition, making it a powerful tool for early detection and tracking of the disease. The app is developed using Flutter and integrates various technologies such as MongoDB Atlas, OpenStreetMap, TFLite_Flutter, Flutter Syncfusion Chart, and the VGG-16 model.
+This repository contains the source code for an Hand, Foot, and Mouth Disease (HFMD) Digital Mobile Diagnosis App. 
+The application utilizes the VGG-16 model for HFMD recognition, making it a powerful tool for early detection and tracking of the disease. 
+The app is developed using Flutter and integrates various technologies such as MongoDB Atlas, OpenStreetMap, TFLite_Flutter, Flutter Syncfusion Chart, and the VGG-16 model.
 
 Features
 HFMD Recognition
