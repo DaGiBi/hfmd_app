@@ -30,16 +30,21 @@ Getting Started
 To run the app locally, follow these steps:
 
 Clone the repository:
+
 git clone https://github.com/DaGiBi/hfmd_app.git
+
 Install dependencies:
 
 flutter pub get
+
 Configure MongoDB Atlas:
 
 Obtain your MongoDB Atlas connection string.
+
 Update the connection string in the app code.
 
 Run the app:
+
 flutter run
 
 
